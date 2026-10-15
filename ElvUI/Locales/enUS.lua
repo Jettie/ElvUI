@@ -188,6 +188,7 @@ L["Interrupted %s's |cff71d5ff|Hspell:%d:0|h[%s]|h|r!"] = true
 L["Invalid Target"] = true
 L["is looking for members"] = true
 L["Item Level:"] = true
+L["iLvl:"] = true
 L["joined a group"] = true
 L["Key"] = true
 L["Keybinds"] = true

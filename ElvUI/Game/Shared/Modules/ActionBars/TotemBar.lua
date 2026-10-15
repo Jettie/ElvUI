@@ -365,6 +365,19 @@ function AB:MultiCastFlyoutFrameStyle(button, rotate)
 	bar.buttons[button] = true
 end
 
+-- Titan Reforged does not refresh totem action buttons when the flyout closes.
+function AB:MultiCastFlyoutFrame_Hide()
+	local barFrame = _G.MultiCastActionBarFrame
+	if not barFrame then return end
+
+	for i = 1, barFrame.numActiveSlots or 0 do
+		local button = _G['MultiCastActionButton'..i]
+		if button and button.Update then
+			button:Update()
+		end
+	end
+end
+
 function AB:TotemBar_SpellButtonSetPoint(point, attachTo, anchorPoint, xOffset, yOffset)
 	local db = AB.db.totemBar
 	local buttonSpacing = (db and db.spacing) or 0
@@ -436,6 +449,7 @@ function AB:CreateTotemBar()
 	AB:SecureHook('MultiCastActionButton_Update')
 	AB:SecureHook('MultiCastFlyoutFrame_ToggleFlyout')
 	AB:SecureHook('MultiCastSlotButton_Update', 'StyleTotemSlotButton')
+	AB:SecureHook('MultiCastFlyoutFrame_Hide')
 
 	AB:HookScript(_G.MultiCastActionBarFrame, 'OnEnter', 'TotemBar_OnEnter')
 	AB:HookScript(_G.MultiCastActionBarFrame, 'OnLeave', 'TotemBar_OnLeave')

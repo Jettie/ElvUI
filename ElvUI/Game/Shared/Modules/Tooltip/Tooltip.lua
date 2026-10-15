@@ -71,8 +71,10 @@ local GetDisplayedItem = TooltipUtil and TooltipUtil.GetDisplayedItem
 local GetItemQualityByID = C_Item.GetItemQualityByID
 local GetItemCount = C_Item.GetItemCount
 local GetItemInfo = C_Item.GetItemInfo
+local GetDetailedItemLevelInfo = C_Item.GetDetailedItemLevelInfo
 
 local GameTooltip, GameTooltipStatusBar = GameTooltip, GameTooltipStatusBar
+local ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2 = ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2
 local C_QuestLog_GetQuestIDForLogIndex = C_QuestLog.GetQuestIDForLogIndex
 local C_ChallengeMode_GetDungeonScoreRarityColor = C_ChallengeMode and C_ChallengeMode.GetDungeonScoreRarityColor
 local C_CurrencyInfo_GetCurrencyListLink = C_CurrencyInfo.GetCurrencyListLink
@@ -826,7 +828,7 @@ function TT:EmbeddedItemTooltip_QuestReward(tt)
 end
 
 function TT:GameTooltip_OnTooltipSetItem(data)
-	if (self ~= GameTooltip and self ~= _G.ShoppingTooltip1 and self ~= _G.ShoppingTooltip2) or self:IsForbidden() or not TT.db.visibility then return end
+	if (self ~= GameTooltip and self ~= ShoppingTooltip1 and self ~= ShoppingTooltip2 and self ~= ItemRefTooltip) or self:IsForbidden() or not TT.db.visibility then return end
 
 	local owner = self:GetOwner()
 	local ownerName = owner and owner.GetName and owner:GetName()
@@ -835,7 +837,7 @@ function TT:GameTooltip_OnTooltipSetItem(data)
 		return
 	end
 
-	local itemID, bagCount, bankCount, stackSize
+	local itemID, bagCount, bankCount, stackSize, itemLevelText
 	local modKey = TT:IsModKeyDown()
 
 	local GetItem = GetDisplayedItem or self.GetItem
@@ -848,6 +850,13 @@ function TT:GameTooltip_OnTooltipSetItem(data)
 		end
 
 		if not link then return end
+
+		if E.Wrath and TT.db.itemLevel and TT.db.itemLevel.itemLevel then
+			local _, _, _, itemLevel, _, _, _, _, equipLoc = GetItemInfo(link)
+			if itemLevel and equipLoc and (equipLoc ~= 'INVTYPE_NON_EQUIP_IGNORE' or itemLevel >= 200) then
+				itemLevelText = GetDetailedItemLevelInfo(link) or itemLevel
+			end
+		end
 
 		local quality = (self.SetBackdropBorderColor and TT.db.itemQuality) and GetItemQualityByID(link)
 		if quality and quality > 1 then
@@ -902,6 +911,29 @@ function TT:GameTooltip_OnTooltipSetItem(data)
 
 	if (bagCount or bankCount) and stackSize then
 		self:AddDoubleLine(' ', stackSize)
+	end
+
+	if itemLevelText then
+		-- Legacy Wrath item tooltips need an explicit item-level line.
+		local name = self:GetName()
+		local left = name and _G[name..'TextLeft2']
+		if left then
+			local leftText = left:GetText() or ''
+			local isShoppingTooltip = self == ShoppingTooltip1 or self == ShoppingTooltip2
+			if isShoppingTooltip then
+				local itemLevelLine = _G[name..'TextLeft3']
+				local nextLine = _G[name..'TextLeft4']
+				if itemLevelLine and nextLine then
+					itemLevelLine:SetText('|cffffd100'..L['Item Level:']..' '..itemLevelText..'|r')
+					nextLine:SetText(leftText..'|n'..(nextLine:GetText() or ''))
+				else
+					self:AddDoubleLine(L['Item Level:'], itemLevelText)
+				end
+			else
+				left:SetText('|cffffd100'..L['Item Level:']..' '..itemLevelText..'|r|n'..leftText)
+			end
+			self:Show()
+		end
 	end
 end
 
@@ -1296,6 +1328,17 @@ function TT:Initialize()
 		TT:SecureHookScript(GameTooltip, 'OnTooltipSetSpell', TT.GameTooltip_OnTooltipSetSpell)
 		TT:SecureHookScript(GameTooltip, 'OnTooltipSetItem', TT.GameTooltip_OnTooltipSetItem)
 		TT:SecureHookScript(GameTooltip, 'OnTooltipSetUnit', TT.GameTooltip_OnTooltipSetUnit)
+		if E.Wrath then
+			if ItemRefTooltip then
+				TT:SecureHookScript(ItemRefTooltip, 'OnTooltipSetItem', TT.GameTooltip_OnTooltipSetItem)
+			end
+			if ShoppingTooltip1 then
+				TT:SecureHookScript(ShoppingTooltip1, 'OnTooltipSetItem', TT.GameTooltip_OnTooltipSetItem)
+			end
+			if ShoppingTooltip2 then
+				TT:SecureHookScript(ShoppingTooltip2, 'OnTooltipSetItem', TT.GameTooltip_OnTooltipSetItem)
+			end
+		end
 		TT:SecureHookScript(E.SpellBookTooltip, 'OnTooltipSetSpell', TT.GameTooltip_OnTooltipSetSpell)
 	end
 

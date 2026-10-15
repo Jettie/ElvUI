@@ -25,6 +25,96 @@ local bar = CreateFrame('Frame', 'ElvUI_BarPet', E.UIParent, 'SecureHandlerState
 bar:SetFrameStrata('LOW')
 bar.buttons = {}
 
+local function CreateWrathAutoCastOverlay(button)
+	-- Titan Reforged taints Blizzard's autocast glow when the pet spellbook toggles autocast.
+	local overlay = CreateFrame('Frame', nil, button)
+	overlay:SetFrameLevel(button:GetFrameLevel() + 10)
+	overlay:SetAllPoints()
+
+	overlay.texture = overlay:CreateTexture(nil, 'OVERLAY', nil, 1)
+	overlay.texture:SetTexture([[Interface\Buttons\UI-AutoCastableOverlay]])
+	overlay.texture:SetBlendMode('ADD')
+	overlay.texture:SetPoint('CENTER')
+	overlay.texture:Hide()
+
+	overlay.sparkles = {}
+	for i = 1, 16 do
+		local sparkle = overlay:CreateTexture(nil, 'OVERLAY')
+		sparkle:SetTexture([[Interface\ItemSocketingFrame\UI-ItemSockets]])
+		sparkle:SetTexCoord(0.3984375, 0.4453125, 0.40234375, 0.44921875)
+		sparkle:SetBlendMode('ADD')
+		sparkle:SetVertexColor(0.95, 0.95, 0.32)
+		sparkle:Hide()
+		overlay.sparkles[i] = sparkle
+	end
+
+	overlay.isEnabled = false
+	overlay.timers = { 0, 0, 0, 0 }
+	overlay.speeds = { 1.6, 3.2, 2.4, 3.2 }
+
+	overlay.ShowAutoCastEnabled = function(self, enabled)
+		self.isEnabled = enabled
+		for _, sparkle in next, self.sparkles do
+			sparkle:SetShown(enabled)
+		end
+	end
+
+	overlay.UpdateSizes = function(self)
+		local width, height = self:GetSize()
+		self.texture:SetSize(width * 1.8, height * 1.8)
+
+		local baseSize = math.min(width, height) * 0.35
+		local sizes = { baseSize, baseSize * 0.77, baseSize * 0.54, baseSize * 0.31 }
+		for i = 1, 16 do
+			local size = sizes[((i - 1) % 4) + 1]
+			self.sparkles[i]:SetSize(size, size)
+		end
+	end
+
+	overlay:SetScript('OnUpdate', function(self, elapsed)
+		if not self.isEnabled then return end
+
+		local distance = self:GetWidth()
+		for i = 1, 4 do
+			local speed = self.speeds[i]
+			local timer = self.timers[i] + elapsed
+			if timer > speed * 4 then
+				timer = timer - speed * 4
+			end
+			self.timers[i] = timer
+
+			local basePosition
+			if timer <= speed then
+				basePosition = timer / speed * distance
+				self.sparkles[i]:SetPoint('CENTER', self, 'TOPLEFT', basePosition, 0)
+				self.sparkles[i + 4]:SetPoint('CENTER', self, 'BOTTOMRIGHT', -basePosition, 0)
+				self.sparkles[i + 8]:SetPoint('CENTER', self, 'TOPRIGHT', 0, -basePosition)
+				self.sparkles[i + 12]:SetPoint('CENTER', self, 'BOTTOMLEFT', 0, basePosition)
+			elseif timer <= speed * 2 then
+				basePosition = (timer - speed) / speed * distance
+				self.sparkles[i]:SetPoint('CENTER', self, 'TOPRIGHT', 0, -basePosition)
+				self.sparkles[i + 4]:SetPoint('CENTER', self, 'BOTTOMLEFT', 0, basePosition)
+				self.sparkles[i + 8]:SetPoint('CENTER', self, 'BOTTOMRIGHT', -basePosition, 0)
+				self.sparkles[i + 12]:SetPoint('CENTER', self, 'TOPLEFT', basePosition, 0)
+			elseif timer <= speed * 3 then
+				basePosition = (timer - speed * 2) / speed * distance
+				self.sparkles[i]:SetPoint('CENTER', self, 'BOTTOMRIGHT', -basePosition, 0)
+				self.sparkles[i + 4]:SetPoint('CENTER', self, 'TOPLEFT', basePosition, 0)
+				self.sparkles[i + 8]:SetPoint('CENTER', self, 'BOTTOMLEFT', 0, basePosition)
+				self.sparkles[i + 12]:SetPoint('CENTER', self, 'TOPRIGHT', 0, -basePosition)
+			else
+				basePosition = (timer - speed * 3) / speed * distance
+				self.sparkles[i]:SetPoint('CENTER', self, 'BOTTOMLEFT', 0, basePosition)
+				self.sparkles[i + 4]:SetPoint('CENTER', self, 'TOPRIGHT', 0, -basePosition)
+				self.sparkles[i + 8]:SetPoint('CENTER', self, 'TOPLEFT', basePosition, 0)
+				self.sparkles[i + 12]:SetPoint('CENTER', self, 'BOTTOMRIGHT', -basePosition, 0)
+			end
+		end
+	end)
+
+	return overlay
+end
+
 function AB:UpdatePet(event, unit)
 	if (event == 'UNIT_FLAGS' and unit ~= 'pet') or (event == 'UNIT_PET' and unit ~= 'player') then return end
 
@@ -81,7 +171,22 @@ function AB:UpdatePet(event, unit)
 			autoCast:Hide()
 		end
 
-		autoCast:ShowAutoCastEnabled(autoCastEnabled)
+		if E.Wrath then
+			autoCast:Hide()
+
+			local overlay = button.TitanAutoCastOverlay
+			if overlay then
+				if autoCastAllowed then
+					overlay.texture:Show()
+				else
+					overlay.texture:Hide()
+				end
+
+				overlay:ShowAutoCastEnabled(autoCastEnabled)
+			end
+		else
+			autoCast:ShowAutoCastEnabled(autoCastEnabled)
+		end
 
 		if not PetHasActionBar() and texture and name ~= 'PET_ACTION_FOLLOW' then
 			if PetActionButton_StopFlash then
@@ -166,6 +271,11 @@ function AB:PositionAndSizeBarPet()
 		AB:HandleButtonAutoCast(bar, button)
 		AB:HandleButton(bar, button, i, lastButton, lastColumnButton)
 		AB:StyleButton(button, nil, useMasque, true, 'barPet')
+
+		-- Recalculate the custom sparkle sizes after ElvUI changes the pet button dimensions.
+		if E.Wrath and button.TitanAutoCastOverlay then
+			button.TitanAutoCastOverlay:UpdateSizes()
+		end
 	end
 
 	AB:HandleBackdropMultiplier(bar, backdropSpacing, buttonSpacing, db.widthMult, db.heightMult, anchorUp, anchorLeft, horizontal, lastShownButton, anchorRowButton)
@@ -241,6 +351,10 @@ function AB:CreateBarPet()
 
 		if not E.Modern then
 			button.commandName = 'BONUSACTIONBUTTON'..i -- to support KB like retail
+		end
+
+		if E.Wrath then
+			button.TitanAutoCastOverlay = CreateWrathAutoCastOverlay(button)
 		end
 
 		AB:HookScript(button, 'OnEnter', 'Button_OnEnter')

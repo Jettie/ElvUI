@@ -284,7 +284,7 @@ local function SkinMountFrame()
 
 	S:HandleButton(_G.MountJournal.FilterDropdown, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, 'right')
 	_G.MountJournal.FilterDropdown:ClearAllPoints()
-	_G.MountJournal.FilterDropdown:Point('LEFT', _G.MountJournalSearchBox, 'RIGHT', 5, 0)
+	_G.MountJournal.FilterDropdown:Point('LEFT', _G.MountJournalSearchBox, 'RIGHT', E.Wrath and 10 or 5, 0)
 
 	S:HandleCloseButton(_G.MountJournal.FilterDropdown.ResetButton)
 	_G.MountJournal.FilterDropdown.ResetButton:ClearAllPoints()
@@ -310,7 +310,14 @@ local function SkinMountFrame()
 	S:HandleIcon(MountDisplay.InfoButton.Icon, true)
 
 	S:HandleButton(_G.MountJournalMountButton)
-	_G.MountJournalMountButton:NudgePoint(0, -3)
+	if E.Wrath then
+		-- Align Wrath mount search controls and reserve enough width for the mount action.
+		_G.MountJournalSearchBox:Height(22)
+		_G.MountJournalMountButton:Width(160)
+		_G.MountJournalMountButton:NudgePoint(0, 0)
+	else
+		_G.MountJournalMountButton:NudgePoint(0, -3)
+	end
 	S:HandleEditBox(_G.MountJournalSearchBox)
 	S:HandleTrimScrollBar(_G.MountJournal.ScrollBar)
 
@@ -341,13 +348,17 @@ local function SkinPetFrame()
 
 	PetJournal.PetCount:StripTextures()
 	S:HandleEditBox(_G.PetJournalSearchBox)
+	if E.Wrath then
+		-- Keep Wrath pet search and filter controls aligned at both pixel scales.
+		_G.PetJournalSearchBox:Height(22)
+	end
 	_G.PetJournalSearchBox:ClearAllPoints()
-	_G.PetJournalSearchBox:Point('TOPLEFT', _G.PetJournalLeftInset, 'TOPLEFT', (E.PixelMode and 13 or 10), -9)
+	_G.PetJournalSearchBox:Point('TOPLEFT', _G.PetJournalLeftInset, 'TOPLEFT', (E.PixelMode and (E.Wrath and 16 or 13) or 10), -9)
 
 	S:HandleButton(PetJournal.FilterDropdown, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, 'right')
 	PetJournal.FilterDropdown:Height(E.PixelMode and 22 or 24)
 	PetJournal.FilterDropdown:ClearAllPoints()
-	PetJournal.FilterDropdown:Point('TOPRIGHT', _G.PetJournalLeftInset, 'TOPRIGHT', -5, -(E.PixelMode and 8 or 7))
+	PetJournal.FilterDropdown:Point('TOPRIGHT', _G.PetJournalLeftInset, 'TOPRIGHT', E.Wrath and -5.5 or -5, -(E.PixelMode and (E.Wrath and 9 or 8) or 7))
 	S:HandleCloseButton(PetJournal.FilterDropdown.ResetButton)
 	PetJournal.FilterDropdown.ResetButton:ClearAllPoints()
 	PetJournal.FilterDropdown.ResetButton:Point('CENTER', PetJournal.FilterDropdown, 'TOPRIGHT', 0, 0)
@@ -473,9 +484,18 @@ end
 local function SkinToyFrame()
 	local ToyBox = _G.ToyBox
 	S:HandleEditBox(ToyBox.searchBox)
+	if E.Wrath then ToyBox.searchBox:Height(22) end
 
 	S:HandleButton(_G.ToyBox.FilterDropdown, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, 'right')
-	_G.ToyBox.FilterDropdown:Point('LEFT', ToyBox.searchBox, 'RIGHT', 2, 0)
+	if E.Wrath then
+		-- Align Wrath toy search and filter labels on the same baseline.
+		_G.ToyBox.FilterDropdown:ClearAllPoints()
+		_G.ToyBox.FilterDropdown:Point('LEFT', ToyBox.searchBox, 'RIGHT', 10, 0)
+		local point, relativeTo, relativePoint, xOffset = ToyBox.FilterDropdown.Text:GetPoint()
+		ToyBox.FilterDropdown.Text:Point(point, relativeTo, relativePoint, xOffset, 0)
+	else
+		_G.ToyBox.FilterDropdown:Point('LEFT', ToyBox.searchBox, 'RIGHT', 2, 0)
+	end
 	S:HandleCloseButton(_G.ToyBox.FilterDropdown.ResetButton)
 	_G.ToyBox.FilterDropdown.ResetButton:ClearAllPoints()
 	_G.ToyBox.FilterDropdown.ResetButton:Point('CENTER', _G.ToyBox.FilterDropdown, 'TOPRIGHT', 0, 0)
@@ -517,13 +537,25 @@ end
 local function SkinHeirloomFrame()
 	local HeirloomsJournal = _G.HeirloomsJournal
 	S:HandleEditBox(HeirloomsJournal.SearchBox)
+	if E.Wrath then HeirloomsJournal.SearchBox:Height(22) end
 	HeirloomsJournal.iconsFrame:StripTextures()
 
 	S:HandleNextPrevButton(HeirloomsJournal.PagingFrame.NextPageButton, nil, nil, true)
 	S:HandleNextPrevButton(HeirloomsJournal.PagingFrame.PrevPageButton, nil, nil, true)
 	S:HandleDropDownBox(_G.HeirloomsJournal.ClassDropdown)
+	if E.Wrath then
+		HeirloomsJournal.ClassDropdown:ClearAllPoints()
+		HeirloomsJournal.ClassDropdown:Point('TOPLEFT', HeirloomsJournal, 'TOPLEFT', 70, -34)
+	end
 
 	S:HandleButton(_G.HeirloomsJournal.FilterDropdown, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, 'right')
+	if E.Wrath then
+		-- Align Wrath heirloom search, class, and filter controls.
+		_G.HeirloomsJournal.FilterDropdown:ClearAllPoints()
+		_G.HeirloomsJournal.FilterDropdown:Point('LEFT', HeirloomsJournal.SearchBox, 'RIGHT', 10, 0)
+		local point, relativeTo, relativePoint, xOffset = HeirloomsJournal.FilterDropdown.Text:GetPoint()
+		HeirloomsJournal.FilterDropdown.Text:Point(point, relativeTo, relativePoint, xOffset, 0)
+	end
 	S:HandleCloseButton(_G.HeirloomsJournal.FilterDropdown.ResetButton)
 	_G.HeirloomsJournal.FilterDropdown.ResetButton:ClearAllPoints()
 	_G.HeirloomsJournal.FilterDropdown.ResetButton:Point('CENTER', _G.HeirloomsJournal.FilterDropdown, 'TOPRIGHT', 0, 0)
@@ -587,6 +619,11 @@ local function SkinWardrobeFrame()
 	ProgressBar:SetStatusBarTexture(E.media.normTex)
 	ProgressBar:CreateBackdrop()
 	E:RegisterStatusBar(ProgressBar)
+	if E.Wrath then
+		-- Keep the Wrath wardrobe progress and search controls clear of the tabs.
+		ProgressBar:ClearAllPoints()
+		ProgressBar:Point('TOPLEFT', _G.WardrobeCollectionFrameTab1, 'TOPLEFT', 196, -11)
+	end
 
 	if E.Modern then
 		if E.global.general.disableTutorialButtons then
@@ -598,9 +635,10 @@ local function SkinWardrobeFrame()
 
 	S:HandleEditBox(_G.WardrobeCollectionFrameSearchBox)
 	_G.WardrobeCollectionFrameSearchBox:SetFrameLevel(5)
+	if E.Wrath then _G.WardrobeCollectionFrameSearchBox:Height(22) end
 
 	S:HandleButton(WardrobeCollectionFrame.FilterButton, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, true, 'right')
-	WardrobeCollectionFrame.FilterButton:Point('LEFT', WardrobeCollectionFrame.SearchBox, 'RIGHT', 4, 0)
+	WardrobeCollectionFrame.FilterButton:Point('LEFT', WardrobeCollectionFrame.SearchBox, 'RIGHT', E.Wrath and 10 or 4, 0)
 	S:HandleCloseButton(WardrobeCollectionFrame.FilterButton.ResetButton)
 	WardrobeCollectionFrame.FilterButton.ResetButton:ClearAllPoints()
 	WardrobeCollectionFrame.FilterButton.ResetButton:Point('CENTER', WardrobeCollectionFrame.FilterButton, 'TOPRIGHT', 0, 0)

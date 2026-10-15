@@ -105,3 +105,8 @@ General.visibility.args.actionbars = ACH:Select(L["ActionBars"], L["Choose when 
 General.visibility.args.bags = ACH:Select(L["Bags/Bank"], L["Choose when you want the tooltip to show. If a modifier is chosen, then you need to hold that down to show the tooltip."], 2, modifierValues)
 General.visibility.args.unitFrames = ACH:Select(L["UnitFrames"], L["Choose when you want the tooltip to show. If a modifier is chosen, then you need to hold that down to show the tooltip."], 3, modifierValues)
 General.visibility.args.combatOverride = ACH:Select(L["Combat Override Key"], L["Choose when you want the tooltip to show in combat. If a modifier is chosen, then you need to hold that down to show the tooltip."], 4, modifierValues)
+
+if E.Wrath then
+	General.itemLevel = ACH:Group(L["Item Level"], nil, 89, nil, function(info) return E.db.tooltip.itemLevel[info[#info]] end, function(info, value) E.db.tooltip.itemLevel[info[#info]] = value end)
+	General.itemLevel.args.itemLevel = ACH:Toggle(L["Display Item Level"], L["Display the item level of an item in the tooltip."], 1)
+end

@@ -1557,6 +1557,9 @@ P.tooltip = {
 	playerTitles = true,
 	guildRanks = true,
 	itemQuality = false,
+	itemLevel = {
+		itemLevel = true,
+	},
 	includeReagents = true,
 	includeWarband = true,
 	modifierCount = true,

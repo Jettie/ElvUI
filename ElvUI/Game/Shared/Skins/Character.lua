@@ -1132,8 +1132,82 @@ local function SkinPaperDollFrame(CharacterFrame)
 end
 
 -- Wrath, TBC and Vanilla
+local function SkinWrathGearManager()
+	local GearManagerDialog = _G.GearManagerDialog
+	if not GearManagerDialog then return end
+
+	-- Titan Reforged includes GearManagerDialog, which is not covered by the stock character skin.
+	S:HandleFrame(GearManagerDialog, true)
+	GearManagerDialog:ClearAllPoints()
+	GearManagerDialog:Point('TOPLEFT', _G.PaperDollFrame, 'TOPRIGHT', -30, -12)
+
+	local closeButton = _G.GearManagerDialogClose
+	if closeButton then S:HandleCloseButton(closeButton) end
+
+	for _, button in next, { _G.GearManagerDialogDeleteSet, _G.GearManagerDialogEquipSet, _G.GearManagerDialogSaveSet } do
+		if button then S:HandleButton(button) end
+	end
+
+	local popup = _G.GearManagerDialogPopup
+	if popup then
+		S:HandleFrame(popup)
+		popup:ClearAllPoints()
+		popup:Point('TOPLEFT', GearManagerDialog, 'BOTTOMLEFT', 0, -2)
+		popup:HookScript('OnShow', function(frame)
+			frame:ClearAllPoints()
+			frame:Point('TOPLEFT', GearManagerDialog, 'BOTTOMLEFT', 0, -2)
+		end)
+
+		local editBox = popup.EditBox or _G.GearManagerDialogPopupEditBox
+		if editBox then S:HandleEditBox(editBox) end
+		if popup.OkayButton then S:HandleButton(popup.OkayButton) end
+		if popup.CancelButton then S:HandleButton(popup.CancelButton) end
+
+		local scrollBar = _G.GearManagerDialogPopupScrollFrameScrollBar
+		if scrollBar then S:HandleScrollBar(scrollBar) end
+
+		local index = 1
+		local button = _G['GearManagerDialogPopupButton'..index]
+		while button do
+			button:StripTextures()
+			button:SetTemplate()
+			button:StyleButton(nil, true)
+
+			local icon = button:GetNormalTexture()
+			if icon then
+				icon:SetInside()
+				icon:SetTexCoords()
+			end
+
+			index = index + 1
+			button = _G['GearManagerDialogPopupButton'..index]
+		end
+	end
+
+	for i = 1, _G.MAX_EQUIPMENT_SETS_PER_PLAYER or 0 do
+		local button = _G['GearSetButton'..i]
+		if button then
+			button:StripTextures()
+			button:SetTemplate()
+			button:StyleButton(nil, true)
+
+			if button.text then
+				local font, size = button.text:GetFont()
+				button.text:SetFont(font, size, 'OUTLINE')
+			end
+
+			local icon = button:GetNormalTexture()
+			if icon then
+				icon:SetInside()
+				icon:SetTexCoords()
+			end
+		end
+	end
+end
+
 local function SkinClassicPaperDollFrame()
 	_G.PaperDollFrame:StripTextures()
+	if E.Wrath then SkinWrathGearManager() end
 
 	if not E.Classic then -- vanilla has neither dropdown
 		S:HandleDropDownBox(_G.PlayerTitleDropdown, 160)

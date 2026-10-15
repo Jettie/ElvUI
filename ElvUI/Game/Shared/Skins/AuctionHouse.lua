@@ -551,18 +551,20 @@ local function SkinAuctionFrame()
 	end
 
 	local AuctionFrameBrowse = _G.AuctionFrameBrowse
-	for _, filter in next, AuctionFrameBrowse.FilterButtons do
-		filter:StripTextures()
-		filter:StyleButton()
+	if not E.Wrath then
+		for _, filter in next, AuctionFrameBrowse.FilterButtons do
+			filter:StripTextures()
+			filter:StyleButton()
 
-		local name = filter:GetName()
-		local lines = _G[name..'Lines']
-		lines:SetAlpha(0)
-		lines.SetAlpha = E.noop
+			local name = filter:GetName()
+			local lines = _G[name..'Lines']
+			lines:SetAlpha(0)
+			lines.SetAlpha = E.noop
 
-		local normal = filter:GetNormalTexture()
-		normal:SetAlpha(0)
-		normal.SetAlpha = E.noop
+			local normal = filter:GetNormalTexture()
+			normal:SetAlpha(0)
+			normal.SetAlpha = E.noop
+		end
 	end
 
 	local BrowsePriceOptionsFrame = _G.BrowsePriceOptionsFrame
@@ -588,14 +590,19 @@ local function SkinAuctionFrame()
 
 	_G.BrowseScrollFrame:StripTextures()
 
-	_G.BrowseFilterScrollFrame:StripTextures()
+	if not E.Wrath then
+		-- Titan Reforged throttles auction queries when the browse category panel is skinned.
+		_G.BrowseFilterScrollFrame:StripTextures()
+	end
 
 	_G.BrowseCloseButton:Point('BOTTOMRIGHT', 66, 6)
 	_G.BrowseBuyoutButton:Point('RIGHT', _G.BrowseCloseButton, 'LEFT', -4, 0)
 
 	_G.BrowseBidPrice:Point('BOTTOM', -102, 10)
 
-	S:HandleScrollBar(_G.BrowseFilterScrollFrameScrollBar)
+	if not E.Wrath then
+		S:HandleScrollBar(_G.BrowseFilterScrollFrameScrollBar)
+	end
 	S:HandleScrollBar(_G.BrowseScrollFrameScrollBar)
 	S:HandleNextPrevButton(_G.BrowsePrevPageButton, nil, nil, true)
 	S:HandleNextPrevButton(_G.BrowseNextPageButton, nil, nil, true)
@@ -651,7 +658,63 @@ local function SkinAuctionFrame()
 	S:HandleRadioButton(_G.AuctionsMediumAuctionButton)
 	S:HandleRadioButton(_G.AuctionsLongAuctionButton)
 
-	S:HandleDropDownBox(_G.BrowseDropdown, 155)
+	S:HandleDropDownBox(_G.BrowseDropdown, E.Wrath and 72 or 155)
+
+	if E.Wrath then
+		-- Titan Reforged searches use manually pasted item names, so the input and search button need more room.
+		_G.BrowseNameText:ClearAllPoints()
+		_G.BrowseNameText:Point('TOPLEFT', AuctionFrame, 'TOPLEFT', 20, -15)
+
+		_G.BrowseName:ClearAllPoints()
+		_G.BrowseName:Size(190, 45)
+		_G.BrowseName:Point('TOPLEFT', _G.BrowseNameText, 'BOTTOMLEFT', 3, -5)
+
+		_G.BrowseResetButton:ClearAllPoints()
+		_G.BrowseResetButton:Size(50, 20)
+		_G.BrowseResetButton:Point('BOTTOMRIGHT', _G.BrowseName, 'TOPRIGHT', 3, 2)
+
+		_G.BrowseLevelText:ClearAllPoints()
+		_G.BrowseLevelText:Point('TOPLEFT', AuctionFrameBrowse, 'TOPLEFT', 230, -15)
+
+		_G.BrowseMinLevel:ClearAllPoints()
+		_G.BrowseMinLevel:Height(21)
+		_G.BrowseMinLevel:Point('TOPLEFT', _G.BrowseLevelText, 'BOTTOMLEFT', 0, -5)
+
+		_G.BrowseMaxLevel:ClearAllPoints()
+		_G.BrowseMaxLevel:Height(21)
+		_G.BrowseMaxLevel:Point('LEFT', _G.BrowseMinLevel, 'RIGHT', 16, 0)
+
+		_G.BrowseLevelHyphen:ClearAllPoints()
+		_G.BrowseLevelHyphen:Point('LEFT', _G.BrowseMinLevel, 'RIGHT', 2, 0)
+
+		_G.BrowseDropdownName:ClearAllPoints()
+		_G.BrowseDropdownName:Point('LEFT', _G.BrowseLevelText, 'RIGHT', 30, 0)
+
+		_G.BrowseDropdown:ClearAllPoints()
+		_G.BrowseDropdown:Point('TOPLEFT', _G.BrowseDropdownName, 'BOTTOMLEFT', 0, -3)
+
+		_G.IsUsableCheckButton:ClearAllPoints()
+		_G.IsUsableCheckButton:Point('TOPLEFT', _G.BrowseMinLevel, 'BOTTOMLEFT', -7.5, -2)
+		_G.IsUsableCheckButtonText:ClearAllPoints()
+		_G.IsUsableCheckButtonText:Point('LEFT', _G.IsUsableCheckButton, 'RIGHT', -2, 0)
+
+		_G.ShowOnPlayerCheckButton:ClearAllPoints()
+		_G.ShowOnPlayerCheckButton:Point('LEFT', _G.IsUsableCheckButton, 'RIGHT', 62, 0)
+		_G.ShowOnPlayerCheckButtonText:ClearAllPoints()
+		_G.ShowOnPlayerCheckButtonText:Point('LEFT', _G.ShowOnPlayerCheckButton, 'RIGHT', -2, 0)
+
+		_G.BrowseSearchButton:ClearAllPoints()
+		_G.BrowseSearchButton:Size(120, 30)
+		_G.BrowseSearchButton:Point('TOPRIGHT', AuctionFrameBrowse, 'TOPRIGHT', 40, -20)
+
+		_G.BrowsePrevPageButton:ClearAllPoints()
+		_G.BrowsePrevPageButton:Point('TOPLEFT', _G.BrowseSearchButton, 'BOTTOMLEFT', -10, -5)
+		_G.BrowsePrevPageButton:Width(70)
+
+		_G.BrowseNextPageButton:ClearAllPoints()
+		_G.BrowseNextPageButton:Point('TOPRIGHT', _G.BrowseSearchButton, 'BOTTOMRIGHT', 10, -5)
+		_G.BrowseNextPageButton:Width(70)
+	end
 
 	-- Progress Frame
 	_G.AuctionProgressFrame:StripTextures()

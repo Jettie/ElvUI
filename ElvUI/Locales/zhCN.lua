@@ -188,6 +188,7 @@ L["Interrupted %s's |cff71d5ff|Hspell:%d:0|h[%s]|h|r!"] = "已打断 %s 的 |cff
 L["Invalid Target"] = "无效的目标"
 L["is looking for members"] = "正在寻找队友"
 L["Item Level:"] = "物品等级:"
+L["iLvl:"] = "装等:"
 L["joined a group"] = "加入队伍"
 L["Key"] = "键"
 L["Keybinds"] = "按键绑定"

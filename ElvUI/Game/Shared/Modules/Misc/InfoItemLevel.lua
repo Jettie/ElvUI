@@ -13,6 +13,8 @@ local UnitGUID = UnitGUID
 local UnitExists = UnitExists
 local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown
+local GetInventoryItemID = GetInventoryItemID
+local GetItemInfo = C_Item.GetItemInfo
 
 local InspectItems = {
 	'HeadSlot',
@@ -196,10 +198,35 @@ function M:UpdatePageStrings(i, iLevelDB, slot, slotInfo, which) -- `which` is u
 	end
 
 	if db.showItemLevel then
-		slot.iLvlText:SetText(slotInfo.iLvl)
+		if E.Wrath then
+			local unit = (which == 'Character' and 'player') or (which == 'Inspect' and _G.InspectFrame and _G.InspectFrame.unit)
+			local itemID = unit and GetInventoryItemID(unit, i)
+			local quality, itemLevel
+			if itemID then
+				local _, _, itemQuality, equippedLevel = GetItemInfo(itemID)
+				quality, itemLevel = itemQuality, equippedLevel
+			end
+			iLevelDB[i] = itemLevel or slotInfo.iLvl
 
-		if db.itemLevelRarity and slotInfo.itemLevelColors and next(slotInfo.itemLevelColors) then
-			slot.iLvlText:SetTextColor(unpack(slotInfo.itemLevelColors))
+			-- Wrath does not provide slot item levels consistently, so read them from the equipped item.
+			slot.iLvlText:SetText(itemLevel or slotInfo.iLvl)
+
+			if db.itemLevelRarity then
+				if quality and quality > 0 then
+					local r, g, b = E:GetItemQualityColor(quality)
+					slot.iLvlText:SetTextColor(r, g, b)
+				elseif slotInfo.itemLevelColors and next(slotInfo.itemLevelColors) then
+					slot.iLvlText:SetTextColor(unpack(slotInfo.itemLevelColors))
+				end
+			else
+				slot.iLvlText:SetTextColor(1, 0.96, 0.41)
+			end
+		else
+			slot.iLvlText:SetText(slotInfo.iLvl)
+
+			if db.itemLevelRarity and slotInfo.itemLevelColors and next(slotInfo.itemLevelColors) then
+				slot.iLvlText:SetTextColor(unpack(slotInfo.itemLevelColors))
+			end
 		end
 	end
 
@@ -277,6 +304,12 @@ function M:UpdateAverageString(frame, which, iLevelDB)
 
 			if M:CheckStatsItemLevel() then
 				frame.ItemLevelText:SetTextColor(_G.CharacterStatsPane.ItemLevelFrame.Value:GetTextColor())
+			end
+
+			-- Keep the Wrath character average item level identifiable with a localized label.
+			if E.Wrath then
+				local labelColor = _G.NORMAL_FONT_COLOR:GenerateHexColorMarkup()
+				frame.ItemLevelText:SetText(labelColor..L['iLvl:']..'|r '..E.media.hexvaluecolor..avgItemLevel..'|r')
 			end
 		else
 			frame.ItemLevelText:SetText(avgItemLevel)
@@ -406,7 +439,10 @@ function M:UpdateSlotPoints(which, config)
 			slot.iLvlText:FontTemplate(itemLevelFont, itemLevelFontSize, itemLevelFontOutline)
 			slot.iLvlText:ClearAllPoints()
 
-			if showOnItem then
+			if E.Wrath then
+				-- Wrath slot art needs the item level anchored to the icon corner.
+				slot.iLvlText:Point('BOTTOMRIGHT', slot, showOnItem and 0 or x, showOnItem and 0 or y)
+			elseif showOnItem then
 				slot.iLvlText:Point(db.textPosition, slot, db.textOffsetX, db.textOffsetY)
 			else
 				slot.iLvlText:Point('BOTTOM', slot, x, y)
