@@ -1859,7 +1859,10 @@ function AB:PLAYER_ENTERING_WORLD(event, initLogin, isReload)
 	AB:UpdatePet(event)
 
 	if (initLogin or isReload) and E.allowTotemBar and AB.db.totemBar.enable then
-		AB:SecureHook('ShowMultiCastActionBar', 'PositionAndSizeTotemBar')
+		-- 'Attempting to hook a non existing target' error on Titan Refored
+		if not E.Wrath then
+			AB:SecureHook('ShowMultiCastActionBar', 'PositionAndSizeTotemBar')
+		end
 		AB:PositionAndSizeTotemBar()
 	end
 end

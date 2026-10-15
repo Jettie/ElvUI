@@ -27,6 +27,7 @@ bar.buttons = {}
 
 local function CreateWrathAutoCastOverlay(button)
 	-- Titan Reforged taints Blizzard's autocast glow when the pet spellbook toggles autocast.
+	-- It's OK on first toggle, but if you toggle it again, taint...
 	local overlay = CreateFrame('Frame', nil, button)
 	overlay:SetFrameLevel(button:GetFrameLevel() + 10)
 	overlay:SetAllPoints()

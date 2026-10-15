@@ -706,14 +706,6 @@ local function SkinAuctionFrame()
 		_G.BrowseSearchButton:ClearAllPoints()
 		_G.BrowseSearchButton:Size(120, 30)
 		_G.BrowseSearchButton:Point('TOPRIGHT', AuctionFrameBrowse, 'TOPRIGHT', 40, -20)
-
-		_G.BrowsePrevPageButton:ClearAllPoints()
-		_G.BrowsePrevPageButton:Point('TOPLEFT', _G.BrowseSearchButton, 'BOTTOMLEFT', -10, -5)
-		_G.BrowsePrevPageButton:Width(70)
-
-		_G.BrowseNextPageButton:ClearAllPoints()
-		_G.BrowseNextPageButton:Point('TOPRIGHT', _G.BrowseSearchButton, 'BOTTOMRIGHT', 10, -5)
-		_G.BrowseNextPageButton:Width(70)
 	end
 
 	-- Progress Frame
